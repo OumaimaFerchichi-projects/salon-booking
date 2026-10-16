@@ -2,48 +2,11 @@ import { useEffect, useState } from 'react'
 import { services } from './data'
 import ServiceCard from './components/ServiceCard'
 import DayPicker from './components/DayPicker'
-
-
-type Booking = {
-  id: number
-  serviceId: string
-  day: string
-  time: string
-  name: string
-  phone: string
-}
-
-function nextDays(count: number) {
-  const days: Date[] = []
-  const d = new Date()
-  while (days.length < count) {
-    if (d.getDay() !== 0) days.push(new Date(d))
-    d.setDate(d.getDate() + 1)
-  }
-  return days
-}
-
-const fmtDay = (key: string) =>
-  new Date(key + 'T12:00:00').toLocaleDateString('fr-FR', {
-    weekday: 'short',
-    day: 'numeric',
-    month: 'short',
-  })
-
-const times: string[] = []
-for (let h = 9; h < 18; h++) {
-  const hh = String(h).padStart(2, '0')
-  times.push(`${hh}:00`, `${hh}:30`)
-}
-
-// Créneaux "déjà pris" simulés (temporaire, avant la base de données)
-function fakeTaken(day: string, time: string) {
-  let h = 0
-  for (const c of day + time) h = (h * 31 + c.charCodeAt(0)) >>> 0
-  return h % 4 === 0
-}
+import TimeSlots from './components/TimeSlots'
+import { type Booking, nextDays, fmtDay, fakeTaken } from './utils'
 
 const days = nextDays(7)
+
 
 function loadBookings(): Booking[] {
   try {
@@ -148,22 +111,11 @@ export default function App() {
         {day && (
           <>
             <h2 className="mb-4 mt-10 text-xl font-bold">3. Choisissez l'heure</h2>
-            <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
-              {times.map((t) => (
-                <button
-                  key={t}
-                  disabled={isTaken(day, t)}
-                  onClick={() => setTime(t)}
-                  className={`rounded-lg border py-2 text-sm font-medium disabled:cursor-not-allowed disabled:text-slate-300 disabled:line-through ${
-                    time === t
-                      ? 'border-sky-800 bg-sky-800 text-white'
-                      : 'border-slate-300 bg-white hover:bg-sky-50'
-                  }`}
-                >
-                  {t}
-                </button>
-              ))}
-            </div>
+            <TimeSlots
+              selected={time}
+              isTaken={(t) => isTaken(day, t)}
+              onSelect={setTime}
+            />
           </>
         )}
 
