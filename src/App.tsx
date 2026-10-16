@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react'
 import { services } from './data'
+import ServiceCard from './components/ServiceCard'
+import DayPicker from './components/DayPicker'
+
 
 type Booking = {
   id: number
@@ -19,9 +22,6 @@ function nextDays(count: number) {
   }
   return days
 }
-
-const dayKey = (d: Date) =>
-  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 
 const fmtDay = (key: string) =>
   new Date(key + 'T12:00:00').toLocaleDateString('fr-FR', {
@@ -123,53 +123,27 @@ export default function App() {
 
       <main className="mx-auto max-w-4xl px-4 py-8">
         <h2 className="mb-4 text-xl font-bold">1. Choisissez un service</h2>
-        <div className="grid gap-4 sm:grid-cols-2">
-          {services.map((s) => (
-            <button
-              key={s.id}
-              onClick={() => setSelected(s.id)}
-              className={`overflow-hidden rounded-xl border-2 bg-white text-left shadow-sm transition hover:shadow-md ${
-                selected === s.id ? 'border-sky-700' : 'border-transparent'
-              }`}
-            >
-              <img
-                src={s.image}
-                alt={s.name}
-                className="h-40 w-full bg-sky-100 object-cover"
-              />
-              <div className="flex items-center justify-between p-4">
-                <div>
-                  <p className="font-semibold">{s.name}</p>
-                  <p className="text-sm text-slate-500">{s.minutes} min</p>
-                </div>
-                <p className="font-bold text-sky-800">{s.price} TND</p>
-              </div>
-            </button>
-          ))}
-        </div>
+       
+    <div className="grid gap-4 sm:grid-cols-2">
+        {services.map((s) => (
+          <ServiceCard
+          key={s.id}
+          service={s}
+          selected={selected === s.id}
+          onSelect={() => setSelected(s.id)}
+        />
+      ))}
+ </div>
 
-        <h2 className="mb-4 mt-10 text-xl font-bold">2. Choisissez un jour</h2>
-        <div className="flex flex-wrap gap-2">
-          {days.map((d) => {
-            const k = dayKey(d)
-            return (
-              <button
-                key={k}
-                onClick={() => {
-                  setDay(k)
-                  setTime(null)
-                }}
-                className={`rounded-full border px-4 py-2 text-sm font-medium ${
-                  day === k
-                    ? 'border-sky-800 bg-sky-800 text-white'
-                    : 'border-slate-300 bg-white hover:bg-sky-50'
-                }`}
-              >
-                {fmtDay(k)}
-              </button>
-            )
-          })}
-        </div>
+  <h2 className="mb-4 mt-10 text-xl font-bold">2. Choisissez un jour</h2>
+        <DayPicker
+          days={days}
+          selected={day}
+          onSelect={(k) => {
+            setDay(k)
+            setTime(null)
+          }}
+        />
 
         {day && (
           <>
