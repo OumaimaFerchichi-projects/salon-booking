@@ -3,11 +3,11 @@ import { services } from './data'
 import ServiceCard from './components/ServiceCard'
 import DayPicker from './components/DayPicker'
 import TimeSlots from './components/TimeSlots'
+import BookingForm from './components/BookingForm'
 import BookingList from './components/BookingList'
 import { type Booking, nextDays, fmtDay, fakeTaken } from './utils'
 
 const days = nextDays(7)
-
 
 function loadBookings(): Booking[] {
   try {
@@ -21,8 +21,6 @@ export default function App() {
   const [selected, setSelected] = useState<string | null>(null)
   const [day, setDay] = useState<string | null>(null)
   const [time, setTime] = useState<string | null>(null)
-  const [name, setName] = useState('')
-  const [phone, setPhone] = useState('')
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
   const [bookings, setBookings] = useState<Booking[]>(loadBookings)
@@ -40,36 +38,25 @@ export default function App() {
 
   const service = services.find((s) => s.id === selected)
 
-  function confirmBooking() {
+  const summary =
+    service && day && time
+      ? `${service.name} · ${fmtDay(day)} à ${time} · ${service.price} TND`
+      : "Choisissez d'abord un service, un jour et une heure."
+
+  function confirmBooking(name: string, phone: string): boolean {
     setMessage('')
     if (!service || !day || !time) {
       setError('Choisissez un service, un jour et une heure.')
-      return
-    }
-    if (name.trim().length < 2) {
-      setError('Entrez votre nom.')
-      return
-    }
-    if (!/^\d{8}$/.test(phone.trim())) {
-      setError('Entrez un numéro tunisien valide de 8 chiffres.')
-      return
+      return false
     }
     setBookings([
       ...bookings,
-      {
-        id: Date.now(),
-        serviceId: service.id,
-        day,
-        time,
-        name: name.trim(),
-        phone: phone.trim(),
-      },
+      { id: Date.now(), serviceId: service.id, day, time, name, phone },
     ])
     setMessage(`Réservé ! À ${time}, le ${fmtDay(day)}`)
     setError('')
     setTime(null)
-    setName('')
-    setPhone('')
+    return true
   }
 
   function cancelBooking(id: number) {
@@ -87,19 +74,18 @@ export default function App() {
 
       <main className="mx-auto max-w-4xl px-4 py-8">
         <h2 className="mb-4 text-xl font-bold">1. Choisissez un service</h2>
-       
-    <div className="grid gap-4 sm:grid-cols-2">
-        {services.map((s) => (
-          <ServiceCard
-          key={s.id}
-          service={s}
-          selected={selected === s.id}
-          onSelect={() => setSelected(s.id)}
-        />
-      ))}
- </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          {services.map((s) => (
+            <ServiceCard
+              key={s.id}
+              service={s}
+              selected={selected === s.id}
+              onSelect={() => setSelected(s.id)}
+            />
+          ))}
+        </div>
 
-  <h2 className="mb-4 mt-10 text-xl font-bold">2. Choisissez un jour</h2>
+        <h2 className="mb-4 mt-10 text-xl font-bold">2. Choisissez un jour</h2>
         <DayPicker
           days={days}
           selected={day}
@@ -121,41 +107,14 @@ export default function App() {
         )}
 
         <h2 className="mb-4 mt-10 text-xl font-bold">4. Vos informations</h2>
-        <div className="rounded-xl bg-sky-100 p-4 text-sm font-medium text-sky-900">
-          {service && day && time
-            ? `${service.name} · ${fmtDay(day)} à ${time} · ${service.price} TND`
-            : 'Choisissez d\'abord un service, un jour et une heure.'}
-        </div>
-        <div className="mt-4 grid gap-3 sm:grid-cols-2">
-          <input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Nom complet"
-            className="rounded-lg border border-slate-300 bg-white px-3 py-3"
-          />
-          <input
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            placeholder="Téléphone (8 chiffres)"
-            inputMode="numeric"
-            maxLength={8}
-            className="rounded-lg border border-slate-300 bg-white px-3 py-3"
-          />
-        </div>
-        {error && <p className="mt-3 text-sm font-medium text-red-700">{error}</p>}
-        {message && (
-          <p className="mt-3 rounded-lg bg-green-100 p-3 text-sm font-medium text-green-900">
-            {message}
-          </p>
-        )}
-        <button
-          onClick={confirmBooking}
-          className="mt-4 rounded-lg bg-amber-400 px-6 py-3 font-bold text-slate-900 hover:bg-amber-300"
-        >
-          Confirmer la réservation
-        </button>
+        <BookingForm
+          summary={summary}
+          error={error}
+          message={message}
+          onSubmit={confirmBooking}
+        />
 
-                <h2 className="mb-4 mt-12 text-xl font-bold">Mes réservations</h2>
+        <h2 className="mb-4 mt-12 text-xl font-bold">Mes réservations</h2>
         <BookingList bookings={bookings} onCancel={cancelBooking} />
       </main>
     </div>
