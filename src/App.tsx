@@ -3,6 +3,7 @@ import { services } from './data'
 import ServiceCard from './components/ServiceCard'
 import DayPicker from './components/DayPicker'
 import TimeSlots from './components/TimeSlots'
+import BookingList from './components/BookingList'
 import { type Booking, nextDays, fmtDay, fakeTaken } from './utils'
 
 const days = nextDays(7)
@@ -154,34 +155,8 @@ export default function App() {
           Confirmer la réservation
         </button>
 
-        <h2 className="mb-4 mt-12 text-xl font-bold">Mes réservations</h2>
-        {bookings.length === 0 ? (
-          <p className="text-slate-500">Aucune réservation pour le moment.</p>
-        ) : (
-          <ul className="space-y-2">
-            {bookings.map((b) => (
-              <li
-                key={b.id}
-                className="flex items-center justify-between rounded-lg border border-slate-200 bg-white p-3"
-              >
-                <div>
-                  <p className="font-semibold">
-                    {services.find((s) => s.id === b.serviceId)?.name}
-                  </p>
-                  <p className="text-sm text-slate-500">
-                    {fmtDay(b.day)} à {b.time} · {b.name}
-                  </p>
-                </div>
-                <button
-                  onClick={() => cancelBooking(b.id)}
-                  className="px-2 py-1 text-sm font-medium text-red-700 hover:underline"
-                >
-                  Annuler
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
+                <h2 className="mb-4 mt-12 text-xl font-bold">Mes réservations</h2>
+        <BookingList bookings={bookings} onCancel={cancelBooking} />
       </main>
     </div>
   )
